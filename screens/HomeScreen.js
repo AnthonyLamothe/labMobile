@@ -16,12 +16,12 @@ const HomeScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welcome to My App</Text>
+      <Text style={styles.title}>Laboratoire d'Anthony Lamothe et Samy Tétrault</Text>
       {isPermissionGranted ?
-        <Text style={styles.message}>Camera permission granted</Text>
+        <Text style={styles.message}>Permission d'utiliser la caméra accordée</Text>
         :
         <TouchableOpacity style={styles.button} onPress={requestPermissions}>
-          <Text style={styles.buttonText}>Start App</Text>
+          <Text style={styles.buttonText}>Demander la permission de la caméra</Text>
         </TouchableOpacity>
       }
     </View>
@@ -39,6 +39,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+    textAlign: 'center',
+    width: '80%',
   },
   message: {
     fontSize: 18,
