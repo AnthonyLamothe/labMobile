@@ -38,8 +38,8 @@ const CameraScreen = () => {
       await FileSystem.copyAsync({ from: uri, to: downloadPath });
   
       Alert.alert(
-        'Picture Taken!',
-        'The picture has been saved to ' + downloadPath,
+        'Photo prise!',
+        'La photo a été sauvegardé ici : ' + downloadPath,
         [
           {
             text: 'OK',
@@ -50,7 +50,6 @@ const CameraScreen = () => {
       );
     }
   };
-  
 
   const flipCamera = () => {
     setCameraType(
@@ -58,15 +57,8 @@ const CameraScreen = () => {
     );
   };
 
-  if (isPermissionGranted === null) {
+  if (isPermissionGranted === null || isPermissionGranted === false) {
     return <View />;
-  }
-  else if (isPermissionGranted === false) {
-    return (
-      <View style={styles.container}>
-        <Text>La permission d'accès à la caméra a été refusée</Text>
-      </View>
-    );
   }
   else {
     return (
