@@ -1,11 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Platform, Image } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, Platform, Image, Alert } from 'react-native';
 import { Camera } from 'expo-camera';
+import * as FileSystem from 'expo-file-system';
 
 const CameraScreen = () => {
   const [isPermissionGranted, setIsPermissionGranted] = useState(null);
   const [cameraRef, setCameraRef] = useState(null);
   const [imageUri, setImageUri] = useState(null);
+  const [cameraType, setCameraType] = useState(Camera.Constants.Type.back);
+  const [zoom, setZoom] = useState(0);
 
   useEffect(() => {
     (async () => {
@@ -14,12 +17,45 @@ const CameraScreen = () => {
     })();
   }, []);
 
+  const onZoomIn = () => {
+    if (cameraRef && zoom < 1) {
+      setZoom(zoom + 0.5);
+    }
+  };
+
+  const onZoomOut = () => {
+    if (cameraRef && zoom > 0) {
+      setZoom(zoom - 0.5);
+    }
+  };
 
   const takePicture = async () => {
     if (cameraRef) {
       const { uri } = await cameraRef.takePictureAsync();
       setImageUri(uri);
+  
+      let downloadPath = `${FileSystem.documentDirectory}Download/${uri.split('/').pop()}`;
+      await FileSystem.copyAsync({ from: uri, to: downloadPath });
+  
+      Alert.alert(
+        'Picture Taken!',
+        'The picture has been saved to ' + downloadPath,
+        [
+          {
+            text: 'OK',
+            onPress: () => setImageUri(null)
+          },
+        ],
+        { cancelable: false }
+      );
     }
+  };
+  
+
+  const flipCamera = () => {
+    setCameraType(
+      cameraType === Camera.Constants.Type.back ? Camera.Constants.Type.front : Camera.Constants.Type.back
+    );
   };
 
   if (isPermissionGranted === null) {
@@ -36,16 +72,26 @@ const CameraScreen = () => {
     return (
         <SafeAreaView style={styles.container}>
         <Camera 
-            ref={ref => setCameraRef(ref)}
-            style={styles.camera}
-            type={Camera.Constants.Type.back}
-            autoFocus={Camera.Constants.AutoFocus.on}
-            flashMode={Camera.Constants.FlashMode.off}
+          ref={ref => setCameraRef(ref)}
+          style={styles.camera}
+          type={cameraType}
+          autoFocus={Camera.Constants.AutoFocus.on}
+          flashMode={Camera.Constants.FlashMode.off}
+          zoom={zoom}
         />
         <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.button} onPress={takePicture}>
-            <Text style={styles.buttonText}>SNAP</Text>
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={takePicture}>
+          <Text style={styles.buttonText}>SNAP</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={flipCamera}>
+            <Text style={styles.buttonText}>FLIP</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={onZoomIn}>
+            <Text style={styles.buttonText}>+</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={onZoomOut}>
+            <Text style={styles.buttonText}>-</Text>
+          </TouchableOpacity>
         </View>
         {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
         </SafeAreaView>
@@ -70,6 +116,9 @@ const styles = StyleSheet.create({
       bottom: 0,
       width: '100%',
       alignItems: 'center',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginBottom: 20,
     },
     button: {
       backgroundColor: 'white',
@@ -78,7 +127,6 @@ const styles = StyleSheet.create({
       height: 70,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: 20,
     },
     buttonText: {
       fontSize: 16,
